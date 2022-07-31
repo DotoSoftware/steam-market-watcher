@@ -1,7 +1,6 @@
-import Head from "next/head";
 import * as React from "react";
 import { Component } from "react";
-import { Image } from "@chakra-ui/react";
+import { Image, Flex, Spacer } from "@chakra-ui/react";
 import Navigation from "../nav/navigation";
 
 interface HeaderProps {}
@@ -12,12 +11,11 @@ class Header extends Component<HeaderProps, HeaderState> {
   state = {};
   render() {
     return (
-      <div>
-        <div>
-          <Image src="/favicon.ico"></Image>
-        </div>
+      <Flex width="full" justifyContent="space-between">
+        <Image src="/logo_steam.svg" alt=""></Image>
+        <Spacer />
         <Navigation />
-      </div>
+      </Flex>
     );
   }
 }
