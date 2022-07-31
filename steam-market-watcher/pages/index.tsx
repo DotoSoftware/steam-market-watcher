@@ -12,8 +12,8 @@ const Home: NextPage = () => {
       <Spacer p={5} />
       <Heading as="h1">Welcome</Heading>
       <Spacer p={5} />
-      <Flex width="full">
-        <ListItems />
+      <Flex width="full" h="80vh">
+        <ListItems items={[1, 2, 3]} />
         <Spacer />
         <Sidebar />
       </Flex>

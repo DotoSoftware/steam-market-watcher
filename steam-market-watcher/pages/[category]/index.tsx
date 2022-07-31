@@ -1,17 +1,23 @@
-import { Link } from "@chakra-ui/react";
+import { Container, Flex, Heading, Spacer } from "@chakra-ui/react";
+import Footer from "../../components/footer/footer";
+import Header from "../../components/header/header";
+import ListItems from "../../components/list-items/listItems";
+import SearchSidebar from "../../components/search-sidebar/searchSidebar";
 
 function Category() {
   return (
-    <div>
-      <ul>
-        <li>
-          <Link href="/game-1/item-1">Item 1</Link>
-        </li>
-        <li>
-          <Link href="/game-2/item-2">Item 2</Link>
-        </li>
-      </ul>
-    </div>
+    <Container centerContent maxW="container.xl">
+      <Header />
+      <Spacer p={5} />
+      <Heading as="h1">Welcome</Heading>
+      <Spacer p={5} />
+      <Flex width="full" h="80vh">
+        <ListItems items={[]} />
+        <Spacer />
+        <SearchSidebar />
+      </Flex>
+      <Footer />
+    </Container>
   );
 }
 
