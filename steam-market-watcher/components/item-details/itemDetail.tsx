@@ -11,7 +11,15 @@ import {
   Td,
   TableCaption,
   TableContainer,
+  Box,
+  Heading,
+  List,
+  ListItem,
+  ListIcon,
+  Flex,
+  Spacer,
 } from "@chakra-ui/react";
+import { CheckIcon } from "@chakra-ui/icons";
 
 interface ItemProps {}
 
@@ -21,19 +29,42 @@ class Item extends Component<ItemProps, ItemState> {
   state = {};
   render() {
     return (
-      <div>
-        <div>
-          <div>
-            <Image src=""></Image>
-          </div>
-          <div>
-            <h1>Item Name</h1>
-          </div>
-        </div>
-        <div>
+      <Box w="full">
+        <Flex justifyContent="space-between" w="full">
+          <Box>
+            <Image src="/case-main.png" alt=""></Image>
+          </Box>
+          <Box>
+            <Heading as="h1">Recoil Case</Heading>
+            <Heading as="h3"></Heading>
+            <Box>
+              <List spacing={3}>
+                <ListItem>
+                  <CheckIcon />
+                  Lorem ipsum dolor sit amet, consectetur adipisicing elit
+                </ListItem>
+                <ListItem>
+                  <CheckIcon />
+                  Assumenda, quia temporibus eveniet a libero incidunt suscipit
+                </ListItem>
+                <ListItem>
+                  <CheckIcon />
+                  Quidem, ipsam illum quis sed voluptatum quae eum fugit earum
+                </ListItem>
+                <ListItem>
+                  <CheckIcon />
+                  Quidem, ipsam illum quis sed voluptatum quae eum fugit earum
+                </ListItem>
+              </List>
+            </Box>
+          </Box>
+        </Flex>
+        <Spacer p={5} />
+        <Box>
           <Chart></Chart>
-        </div>
-        <div>
+        </Box>
+        <Spacer p={5} />
+        <Box>
           <TableContainer>
             <Table variant="simple">
               <TableCaption>
@@ -60,8 +91,8 @@ class Item extends Component<ItemProps, ItemState> {
               </Tbody>
             </Table>
           </TableContainer>
-        </div>
-      </div>
+        </Box>
+      </Box>
     );
   }
 }
