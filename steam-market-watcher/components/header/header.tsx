@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Component } from "react";
-import { Image, Flex, Spacer, Link, Box } from "@chakra-ui/react";
+import { Image, Flex, Spacer, Link } from "@chakra-ui/react";
 import Navigation from "../nav/navigation";
 
 interface HeaderProps {}
@@ -12,11 +12,15 @@ class Header extends Component<HeaderProps, HeaderState> {
   render() {
     return (
       <Flex width="full" justifyContent="space-between" alignItems="center">
-        <Box>
-          <Link>
-            <Image src="/logo_steam.svg" alt=""></Image>
+        <Flex align="center" pt={5}>
+          <Link href="/">
+            <Image
+              src="/s-market-watcher-logo.png"
+              alt="s-market-watcher-logo"
+              display={{ base: "none", md: "block" }}
+            />
           </Link>
-        </Box>
+        </Flex>
         <Spacer />
         <Navigation />
       </Flex>

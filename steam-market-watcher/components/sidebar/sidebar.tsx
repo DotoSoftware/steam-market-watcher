@@ -11,11 +11,15 @@ class Sidebar extends Component<Props, State> {
         <Box
           mt={4}
           p={2}
-          bg="rgba(0, 0, 0, 0) linear-gradient(to bottom, rgba(49, 54, 58, 1), rgba(43, 46, 52, 1)) repeat scroll 0 0"
+          pl={5}
+          bg="rgba(0, 0, 0, 0) linear-gradient(to bottom, rgb(56 97 128), rgb(204 204 204)) repeat scroll 0 0"
           color="white"
+          borderRadius={30}
+          
+          boxShadow="0px 2px 3px 1px #344d61"
         >
-          <Link href="/game-1">
-            <Flex>
+          <Link href="/game-1"  >
+            <Flex alignItems="center">
               <Box>
                 <Image src="/csgo.jpg" alt=""></Image>
               </Box>
@@ -26,11 +30,15 @@ class Sidebar extends Component<Props, State> {
         <Box
           mt={4}
           p={2}
-          bg="rgba(0, 0, 0, 0) linear-gradient(to bottom, rgba(49, 54, 58, 1), rgba(43, 46, 52, 1)) repeat scroll 0 0"
+          pl={5}
+          bg="rgba(0, 0, 0, 0) linear-gradient(to bottom, rgb(56 97 128), rgb(204 204 204)) repeat scroll 0 0"
           color="white"
+          borderRadius={30}
+          
+          boxShadow="0px 2px 3px 1px #344d61"
         >
           <Link href="/game-2">
-            <Flex>
+            <Flex  alignItems="center">
               <Box>
                 <Image src="/dota.jpg" alt=""></Image>
               </Box>
