@@ -1,6 +1,9 @@
 const functions = require("firebase-functions");
 const firebase = require("firebase-admin");
-const puppeteer = require("puppeteer");
+const puppeteer = require('puppeteer-extra')
+// add stealth plugin and use defaults (all evasion techniques)
+const StealthPlugin = require('puppeteer-extra-plugin-stealth')
+puppeteer.use(StealthPlugin())
 const fs = require("fs");
 const async = require("async");
 
@@ -22,6 +25,7 @@ const PUPPETEER_OPTIONS = {
 };
 
 const openConnection = async () => {
+
     const browser = await puppeteer.launch(PUPPETEER_OPTIONS);
     const page = await browser.newPage();
     await page.setUserAgent(
@@ -74,13 +78,14 @@ const appendSessionSteam = async (page) => {
         sourceScheme: "Secure",
         sourcePort: 443,
     });
+
     cookies.push({
         name: "steamLoginSecure",
         value: process.env.STEAM_USER_SESSION,
         domain: "steamcommunity.com",
         path: "/",
         expires: -1,
-        size: 79,
+        size: (process.env.STEAM_USER_SESSION).length,
         httpOnly: true,
         secure: true,
         session: true,
@@ -105,7 +110,7 @@ const openSteamItemPage = async (page, url, name) => {
         });
         await saveScreenshotImage(screenshotFilePath);
 
-        const listPrices = await page.$$eval(
+        let listPrices = await page.$$eval(
             ".market_listing_price_with_fee",
             (prices) => {
                 return Array.from(prices, (price) =>
@@ -114,7 +119,7 @@ const openSteamItemPage = async (page, url, name) => {
             }
         );
         if (listPrices && listPrices.length) {
-            listPrices.sort();
+            listPrices.sort((a, b) => a - b)
             return listPrices[0];
         }
         return null;
@@ -138,13 +143,35 @@ const insertIntoFireStore = async (
 
         return firestore
             .collection(`games/${gameId}/items/${item.id}/prices`)
-            .doc()
-            .set(data);
+            .add(data);
     } catch (error) {
         functions.logger.log("insert into cloud firestore error :", error);
         return false;
     }
 };
+
+const insertTestDataSimulator = async () => {
+    //
+    await firestore.collection("games").doc('570').set({
+        name: "Dota 2"
+    });
+    await firestore.collection("games").doc('730').set({
+        name: "CSGO"
+    });
+    //
+    await firestore.collection("games").doc('570').collection("items").doc("Swine%20of%20the%20Sunken%20Galley%20Bundle").set({ name: "Swine of the Sunken Galley Bundle", url: "https://steamcommunity.com/market/listings/570/Swine%20of%20the%20Sunken%20Galley%20Bundle" })
+    await firestore.collection("games").doc('730').collection("items").doc("Recoil%20Case").set({ name: "Recoil Case", url: "https://steamcommunity.com/market/listings/730/Recoil%20Case" })
+    //
+    await firestore.collection("games").doc('570').collection("items").doc("Swine%20of%20the%20Sunken%20Galley%20Bundle").collection("items").add({
+        price: 23.54,
+        time: Date.now()
+    });
+    await firestore.collection("games").doc('730').collection("items").doc("Recoil%20Case").collection("items").add({
+        price: 1.5,
+        time: Date.now()
+    });
+
+}
 
 const startScrappingAllData = async (event = "") => {
     const { browser, page } = await openConnection();
@@ -154,9 +181,8 @@ const startScrappingAllData = async (event = "") => {
         });
         await appendSessionSteam(page);
         const cookies = await page.cookies();
-        console.log("cookies: ", cookies);
         // get list of games
-        const games = (await firestore.collection("games").get());
+        const games = await firestore.collection("games").get();
         if (games.empty) {
             console.log('No matching documents.');
             return;
@@ -166,11 +192,12 @@ const startScrappingAllData = async (event = "") => {
             gameids.push(game.id)
         });
 
-        // using eachSeries of caolan's async to make it synchonorously
+        //this loop got error because they will block us connecting by too sort of time reques
         async.eachSeries(gameids, async (game, _callback) => {
-            console.log("gameid: ", game)
+
+
             const items = await firestore.collection(`games/${game}/items`).get();
-            console.log("items: ", items)
+
             const itemdatas = []
             items.forEach(item => {
                 itemdatas.push({ id: item.id, data: item.data() })
@@ -182,6 +209,7 @@ const startScrappingAllData = async (event = "") => {
                     itemData.url,
                     itemData.name
                 );
+
                 if (price) {
                     await insertIntoFireStore(game, item, price, event);
                 }
@@ -200,6 +228,7 @@ const startScrappingAllData = async (event = "") => {
 exports.manualScrappingSteam = functions.https.onRequest(async (req, res) => {
     // Grab the text parameter.
     const eventName = req.params.event || "";
+    await insertTestDataSimulator()
     await startScrappingAllData(eventName);
     // Send back a message
     res.json({ message: "Manual Importing Data from Steam Markets Completed!" });

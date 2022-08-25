@@ -15,7 +15,9 @@
     "async": "^3.2.4",
     "firebase-admin": "^10.0.2",
     "firebase-functions": "^3.18.0",
-    "puppeteer": "^16.2.0"
+    "puppeteer": "^16.2.0",
+    "puppeteer-extra": "^3.3.4",
+    "puppeteer-extra-plugin-stealth": "^2.11.1"
   },
   "devDependencies": {
     "firebase-functions-test": "^0.2.0"
