@@ -103,21 +103,23 @@ const openSteamItemPage = async (page, url, name) => {
         console.log("single-url: ", url)
         await page.goto(url, { waitUntil: "load" });
 
-        const screenshotFilePath = `${name}.png`;
+        /* const screenshotFilePath = `${name}.png`;
         await page.screenshot({
             path: screenshotFilePath,
             fullPage: true,
         });
-        await saveScreenshotImage(screenshotFilePath);
+        await saveScreenshotImage(screenshotFilePath); */
 
         let listPrices = await page.$$eval(
             ".market_listing_price_with_fee",
             (prices) => {
+
                 return Array.from(prices, (price) =>
                     parseFloat(price.innerText.trim().replace(/[^0-9,-]+/g, ""))
                 );
             }
         );
+
         if (listPrices && listPrices.length) {
             listPrices.sort((a, b) => a - b)
             return listPrices[0];
@@ -141,9 +143,8 @@ const insertIntoFireStore = async (
             event: event,
         };
 
-        return firestore
-            .collection(`games/${gameId}/items/${item.id}/prices`)
-            .add(data);
+        return await firestore
+            .collection(`games/${gameId}/items/${item.id}/prices`).doc().set(data)
     } catch (error) {
         functions.logger.log("insert into cloud firestore error :", error);
         return false;
@@ -159,14 +160,14 @@ const insertTestDataSimulator = async () => {
         name: "CSGO"
     });
     //
-    await firestore.collection("games").doc('570').collection("items").doc("Swine%20of%20the%20Sunken%20Galley%20Bundle").set({ name: "Swine of the Sunken Galley Bundle", url: "https://steamcommunity.com/market/listings/570/Swine%20of%20the%20Sunken%20Galley%20Bundle" })
-    await firestore.collection("games").doc('730').collection("items").doc("Recoil%20Case").set({ name: "Recoil Case", url: "https://steamcommunity.com/market/listings/730/Recoil%20Case" })
+    await firestore.collection("games").doc('570').collection("items").doc("swine-of-the-sunken-galley-bundle").set({ name: "Swine of the Sunken Galley Bundle", url: "https://steamcommunity.com/market/listings/570/Swine%20of%20the%20Sunken%20Galley%20Bundle" })
+    await firestore.collection("games").doc('730').collection("items").doc("awp-neo-noir").set({ name: "AWP | Neo-Noir", url: "https://steamcommunity.com/market/listings/730/AWP%20%7C%20Neo-Noir%20%28Field-Tested%29" })
     //
-    await firestore.collection("games").doc('570').collection("items").doc("Swine%20of%20the%20Sunken%20Galley%20Bundle").collection("items").add({
+    await firestore.collection("games").doc('570').collection("items").doc("swine-of-the-sunken-galley-bundle").collection("prices").add({
         price: 23.54,
         time: Date.now()
     });
-    await firestore.collection("games").doc('730').collection("items").doc("Recoil%20Case").collection("items").add({
+    await firestore.collection("games").doc('730').collection("items").doc("awp-neo-noir").collection("prices").add({
         price: 1.5,
         time: Date.now()
     });
@@ -193,8 +194,7 @@ const startScrappingAllData = async (event = "") => {
         });
 
         //this loop got error because they will block us connecting by too sort of time reques
-        async.eachSeries(gameids, async (game, _callback) => {
-
+        for (const game of gameids) {
 
             const items = await firestore.collection(`games/${game}/items`).get();
 
@@ -202,7 +202,8 @@ const startScrappingAllData = async (event = "") => {
             items.forEach(item => {
                 itemdatas.push({ id: item.id, data: item.data() })
             });
-            async.eachSeries(itemdatas, async (item, __cb) => {
+            for (const item of itemdatas) {
+
                 const itemData = item.data;
                 const price = await openSteamItemPage(
                     page,
@@ -211,10 +212,12 @@ const startScrappingAllData = async (event = "") => {
                 );
 
                 if (price) {
+
                     await insertIntoFireStore(game, item, price, event);
                 }
-            });
-        });
+                await sleep(2000);
+            }
+        }
 
         return true;
     } catch (error) {
@@ -224,6 +227,7 @@ const startScrappingAllData = async (event = "") => {
         // await closeConnection(page, browser);
     }
 };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 // https functions
 exports.manualScrappingSteam = functions.https.onRequest(async (req, res) => {
     // Grab the text parameter.
