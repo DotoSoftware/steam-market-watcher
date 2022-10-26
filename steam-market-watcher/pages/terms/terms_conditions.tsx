@@ -5,7 +5,7 @@ interface TermProps {}
 
 interface TermState {}
 
-class Term extends Component<TermProps, TermState> {
+export class Term extends Component<TermProps, TermState> {
   state = {};
   render() {
     return <div></div>;

@@ -5,7 +5,7 @@ interface PrivacyProps {}
 
 interface PrivacyState {}
 
-class Privacy extends Component<PrivacyProps, PrivacyState> {
+export class Privacy extends Component<PrivacyProps, PrivacyState> {
   state = {};
   render() {
     return <div></div>;

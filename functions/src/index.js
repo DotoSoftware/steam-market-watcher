@@ -4,12 +4,11 @@ const puppeteer = require('puppeteer-extra')
 // add stealth plugin and use defaults (all evasion techniques)
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin())
-const fs = require("fs");
-const async = require("async");
+
 
 firebase.initializeApp();
 const firestore = firebase.firestore();
-const storage = firebase.storage();
+
 
 const PUPPETEER_OPTIONS = {
     headless: true,
@@ -40,26 +39,7 @@ const closeConnection = async (page, browser) => {
     browser && (await browser.close());
 };
 
-const saveScreenshotImage = async (filePath) => {
-    const metadata = {
-        contentType: "image/png",
-        cacheControl: "max-age=31536000",
-    };
-    return storage.bucket().upload(
-        filePath,
-        {
-            metadata: metadata,
-        },
-        (err, file, response) => {
-            if (!err) {
-                return fs.unlinkSync(filePath);
-            }
-            return response;
-        }
-    );
-};
-
-const appendSessionSteam = async (page) => {
+const appendSessionSteam = async (page, session) => {
     const cookies = await page.cookies();
     cookies.push({
         name: "webTradeEligibility",
@@ -81,11 +61,11 @@ const appendSessionSteam = async (page) => {
 
     cookies.push({
         name: "steamLoginSecure",
-        value: process.env.STEAM_USER_SESSION,
+        value: session,
         domain: "steamcommunity.com",
         path: "/",
         expires: -1,
-        size: (process.env.STEAM_USER_SESSION).length,
+        size: session.length,
         httpOnly: true,
         secure: true,
         session: true,
@@ -102,13 +82,6 @@ const openSteamItemPage = async (page, url, name) => {
     try {
         console.log("single-url: ", url)
         await page.goto(url, { waitUntil: "load" });
-
-        /* const screenshotFilePath = `${name}.png`;
-        await page.screenshot({
-            path: screenshotFilePath,
-            fullPage: true,
-        });
-        await saveScreenshotImage(screenshotFilePath); */
 
         let listPrices = await page.$$eval(
             ".market_listing_price_with_fee",
@@ -174,14 +147,13 @@ const insertTestDataSimulator = async () => {
 
 }
 
-const startScrappingAllData = async (event = "") => {
-    const { browser, page } = await openConnection();
+const startScrappingAllData = async (event = "", session = '') => {
+    const { page } = await openConnection();
     try {
         await page.goto("https://steamcommunity.com/market", {
             waitUntil: "load",
         });
-        await appendSessionSteam(page);
-        const cookies = await page.cookies();
+        await appendSessionSteam(page, session);
         // get list of games
         const games = await firestore.collection("games").get();
         if (games.empty) {
@@ -232,8 +204,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 exports.manualScrappingSteam = functions.https.onRequest(async (req, res) => {
     // Grab the text parameter.
     const eventName = req.params.event || "";
-    await insertTestDataSimulator()
-    await startScrappingAllData(eventName);
+    const sessionCookie = req.params.access_cookie || process.env.STEAM_USER_SESSION
+    if (process.env.ENVIRONMENT === "development")
+        await insertTestDataSimulator()
+    await startScrappingAllData(eventName, sessionCookie);
     // Send back a message
     res.json({ message: "Manual Importing Data from Steam Markets Completed!" });
 });
